@@ -1,387 +1,155 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Jay's Tai Chi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="Jay's%20Tai%20Chiadmin_files/css2.css" rel="stylesheet">
+<title>Tai Chi With Jay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink:        #111111;
-  --bg:         #F4EFE6;
-  --surface:    #FFFFFF;
-  --stone:      #E8E2D6;
-  --border:     #D8D0C4;
-  --muted:      #8C8276;
-  --accent:     #9B2335;
-  --accent-lt:  #F5E0E3;
-  --gold:       #C4963A;
-  --gold-lt:    #FAF0DC;
-  --green:      #2D6A4F;
-  --green-lt:   #D8EFE5;
-  --nav-h:      64px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ink:#111111; --bg:#F4EFE6; --surface:#FFFFFF; --stone:#E8E2D6;
+  --border:#D8D0C4; --muted:#8C8276; --accent:#9B2335; --accent-lt:#F5E0E3;
+  --green:#2D6A4F; --green-lt:#D8EFE5; --gold:#C4963A; --gold-lt:#FAF0DC;
+  --nav-h:64px; --safe-bottom:env(safe-area-inset-bottom,0px);
 }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
+#app{display:flex;flex-direction:column;height:100%}
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+header{background:var(--ink);padding:14px 20px 12px;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0}
+.header-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--bg);line-height:1}
+.header-sub{font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:2px}
+.sync-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border-radius:20px;padding:5px 10px;cursor:pointer}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.sync-dot.loading{background:var(--gold);animation:pulse 1s infinite}
+.sync-dot.error{background:var(--accent)}
+.sync-text{font-size:11px;color:rgba(255,255,255,0.5)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
-html, body {
-  height: 100%; overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--ink);
-}
+#screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:20px 16px calc(var(--nav-h) + var(--safe-bottom) + 20px);
+  opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity 0.22s,transform 0.22s}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
 
-/* ── App Shell ─────────────────────────────────────────── */
-#app { display: flex; flex-direction: column; height: 100%; }
+nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom:var(--safe-bottom);background:var(--ink);display:flex;
+  border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);transition:color 0.2s;padding-top:8px}
+.nav-btn.active{color:var(--bg)}
+.nav-btn svg{width:22px;height:22px}
+.nav-label{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:0.05em;font-weight:500}
 
-header {
-  background: var(--ink);
-  padding: 14px 20px 12px;
-  display: flex; align-items: flex-end; justify-content: space-between;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.header-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 26px; font-weight: 400; color: var(--bg);
-  letter-spacing: 0.01em; line-height: 1;
-}
-.header-sub {
-  font-size: 10px; color: rgba(255,255,255,0.35);
-  letter-spacing: 0.12em; text-transform: uppercase;
-  font-weight: 400; margin-bottom: 2px;
-}
-.sync-pill {
-  display: flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.08); border-radius: 20px;
-  padding: 5px 10px; cursor: pointer;
-  transition: background 0.2s;
-}
-.sync-pill:active { background: rgba(255,255,255,0.15); }
-.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
-.sync-dot.loading { background: var(--gold); animation: pulse 1s infinite; }
-.sync-dot.error { background: var(--accent); }
-.sync-text { font-size: 11px; color: rgba(255,255,255,0.5); }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* Setup */
+.setup-card{background:var(--surface);border-radius:16px;padding:24px;border:1px solid var(--border);margin-bottom:16px}
+.setup-card h2{font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:6px}
+.setup-card p{font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:16px}
+.setup-steps{list-style:none;margin-bottom:20px}
+.setup-steps li{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:1.5;padding:8px 0;border-bottom:1px solid var(--stone)}
+.setup-steps li:last-child{border-bottom:none}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.setup-steps code{background:var(--stone);padding:1px 5px;border-radius:4px;font-size:11px}
 
-/* ── Screens ───────────────────────────────────────────── */
-#screens {
-  flex: 1; overflow: hidden; position: relative;
-}
-.screen {
-  position: absolute; inset: 0;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 20px 16px calc(var(--nav-h) + var(--safe-bottom) + 20px);
-  opacity: 0; pointer-events: none;
-  transform: translateY(6px);
-  transition: opacity 0.22s ease, transform 0.22s ease;
-}
-.screen.active {
-  opacity: 1; pointer-events: all; transform: translateY(0);
-}
+/* Form */
+.field-group{margin-bottom:16px}
+.field-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:block}
+input[type="text"],input[type="date"],input[type="number"],input[type="email"],input[type="tel"],select,textarea{
+  width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:15px;background:var(--surface);color:var(--ink);
+  appearance:none;-webkit-appearance:none;transition:border-color 0.15s,box-shadow 0.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(155,35,53,0.1)}
+.select-wrap{position:relative}
+.select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:13px}
+textarea{min-height:80px;resize:vertical;line-height:1.5}
 
-/* ── Nav ───────────────────────────────────────────────── */
-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  height: calc(var(--nav-h) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: var(--ink);
-  display: flex;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0; z-index: 100;
-}
-.nav-btn {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4px;
-  background: none; border: none; cursor: pointer;
-  color: rgba(255,255,255,0.35);
-  transition: color 0.2s;
-  padding-top: 8px;
-}
-.nav-btn.active { color: var(--bg); }
-.nav-btn svg { width: 22px; height: 22px; }
-.nav-label { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.05em; font-weight: 500; }
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap input{padding-left:42px;background:var(--stone);border-color:transparent}
+.search-wrap input:focus{background:var(--surface);border-color:var(--accent)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 
-/* ── Setup / Auth screens ─────────────────────────────── */
-.setup-card {
-  background: var(--surface);
-  border-radius: 16px; padding: 24px;
-  border: 1px solid var(--border);
-  margin-bottom: 16px;
-}
-.setup-card h2 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; font-weight: 600; margin-bottom: 6px;
-}
-.setup-card p { font-size: 14px; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
-.setup-steps { list-style: none; margin-bottom: 20px; }
-.setup-steps li {
-  display: flex; gap: 12px; align-items: flex-start;
-  font-size: 13px; color: var(--ink); line-height: 1.5;
-  padding: 8px 0; border-bottom: 1px solid var(--stone);
-}
-.setup-steps li:last-child { border-bottom: none; }
-.step-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--ink); color: var(--bg);
-  font-size: 11px; font-weight: 600;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  margin-top: 1px;
-}
-.setup-steps a { color: var(--accent); }
-.setup-steps code {
-  background: var(--stone); padding: 1px 5px;
-  border-radius: 4px; font-size: 11px;
-}
+.pill-group{display:flex;gap:8px;flex-wrap:wrap}
+.pill{padding:9px 16px;border:1.5px solid var(--border);border-radius:30px;background:var(--surface);
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.pill.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 
-/* ── Form elements ─────────────────────────────────────── */
-.field-group { margin-bottom: 16px; }
-.field-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--muted);
-  margin-bottom: 7px; display: block;
-}
-input[type="text"], input[type="date"], input[type="number"],
-input[type="email"], input[type="tel"], select, textarea {
-  width: 100%; padding: 13px 14px;
-  border: 1.5px solid var(--border); border-radius: 12px;
-  font-family: 'DM Sans', sans-serif; font-size: 15px;
-  background: var(--surface); color: var(--ink);
-  appearance: none; -webkit-appearance: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-input:focus, select:focus, textarea:focus {
-  outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(155,35,53,0.1);
-}
-.select-wrap { position: relative; }
-.select-wrap::after {
-  content: '▾'; position: absolute; right: 14px; top: 50%;
-  transform: translateY(-50%); pointer-events: none;
-  color: var(--muted); font-size: 13px;
-}
-textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+.price-display{display:flex;align-items:center;gap:10px}
+.std-price{background:var(--stone);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;
+  font-size:15px;font-weight:600;color:var(--muted);min-width:96px;text-align:center;flex-shrink:0}
+.std-price.has-val{color:var(--ink)}
+.price-display .field-group{flex:1;margin-bottom:0}
 
-/* Search input with icon */
-.search-wrap { position: relative; margin-bottom: 12px; }
-.search-wrap input { padding-left: 42px; background: var(--stone); border-color: transparent; }
-.search-wrap input:focus { background: var(--surface); border-color: var(--accent); }
-.search-icon {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
+.total-bar{background:var(--ink);border-radius:14px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin:20px 0 4px}
+.total-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4)}
+.total-amount{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--bg);line-height:1}
 
-/* Pills */
-.pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.pill {
-  padding: 9px 16px; border: 1.5px solid var(--border);
-  border-radius: 30px; background: var(--surface);
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-  color: var(--muted); cursor: pointer; transition: all 0.15s;
-  white-space: nowrap;
-}
-.pill.active { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-.pill.accent-active { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary{width:100%;padding:16px;border:none;border-radius:14px;background:var(--accent);color:white;
+  font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.1s;margin-top:8px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{background:var(--muted);cursor:not-allowed;transform:none}
+.btn-secondary{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:14px;background:var(--surface);color:var(--ink);
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;margin-top:8px}
+.btn-secondary:active{background:var(--stone)}
 
-/* Price display */
-.price-display {
-  display: flex; align-items: center; gap: 10px;
-}
-.std-price {
-  background: var(--stone); border: 1.5px solid var(--border);
-  border-radius: 12px; padding: 13px 14px;
-  font-size: 15px; font-weight: 600; color: var(--muted);
-  min-width: 96px; text-align: center; flex-shrink: 0;
-  transition: color 0.2s;
-}
-.std-price.has-val { color: var(--ink); }
-.price-display .field-group { flex: 1; margin-bottom: 0; }
+.card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:16px;margin-bottom:10px;cursor:pointer}
+.card-row{display:flex;justify-content:space-between;align-items:center}
+.card-name{font-size:16px;font-weight:500}
+.card-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.card-amount{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--green);font-weight:600}
+.card-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--stone);color:var(--muted);margin-top:6px}
+.card-tag.active-tag{background:var(--green-lt);color:var(--green)}
 
-/* Total bar */
-.total-bar {
-  background: var(--ink); border-radius: 14px;
-  padding: 16px 20px; display: flex;
-  justify-content: space-between; align-items: center;
-  margin: 20px 0 4px;
-}
-.total-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
-.total-amount {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 32px; color: var(--bg); line-height: 1;
-}
+.detail-panel{position:fixed;inset:0;background:var(--bg);z-index:200;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);overflow-y:auto}
+.detail-panel.open{transform:translateX(0)}
+.detail-header{background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:1}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--bg);padding:4px;display:flex;align-items:center}
+.detail-name{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--bg)}
+.detail-body{padding:20px 16px 40px}
+.stat-row{display:flex;gap:10px;margin-bottom:16px}
+.stat-box{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.08em}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--stone)}
+.history-item:last-child{border-bottom:none}
+.history-service{font-size:14px;font-weight:500}
+.history-date{font-size:12px;color:var(--muted);margin-top:2px}
+.history-amount{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--green)}
+.section-heading{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
 
-/* Primary button */
-.btn-primary {
-  width: 100%; padding: 16px; border: none; border-radius: 14px;
-  background: var(--accent); color: white;
-  font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
-  cursor: pointer; letter-spacing: 0.02em;
-  transition: background 0.2s, transform 0.1s;
-  margin-top: 8px;
-}
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:300;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);overflow-y:auto}
+.overlay.open{transform:translateY(0)}
+.overlay-header{background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0}
+.overlay-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--bg)}
+.overlay-body{padding:20px 16px 60px}
 
-.btn-secondary {
-  width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 14px;
-  background: var(--surface); color: var(--ink);
-  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
-  cursor: pointer; transition: background 0.15s;
-  margin-top: 8px;
-}
-.btn-secondary:active { background: var(--stone); }
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);left:50%;
+  transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);
+  padding:12px 22px;border-radius:30px;font-size:14px;font-weight:500;
+  opacity:0;transition:opacity 0.2s,transform 0.2s;z-index:400;white-space:nowrap;
+  box-shadow:0 4px 24px rgba(0,0,0,0.25);pointer-events:none}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--accent)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Cards */
-.card {
-  background: var(--surface); border-radius: 14px;
-  border: 1px solid var(--border); padding: 16px;
-  margin-bottom: 10px;
-}
-.card-row { display: flex; justify-content: space-between; align-items: center; }
-.card-name { font-size: 16px; font-weight: 500; }
-.card-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.card-amount {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; color: var(--green); font-weight: 600;
-}
-.card-tag {
-  display: inline-block; padding: 3px 10px;
-  border-radius: 20px; font-size: 11px; font-weight: 600;
-  background: var(--stone); color: var(--muted);
-  margin-top: 6px;
-}
-.card-tag.active-tag { background: var(--green-lt); color: var(--green); }
-
-/* Client detail panel */
-.detail-panel {
-  position: fixed; inset: 0; background: var(--bg); z-index: 200;
-  transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-}
-.detail-panel.open { transform: translateX(0); }
-.detail-header {
-  background: var(--ink); padding: 16px 20px;
-  display: flex; align-items: center; gap: 14px;
-  position: sticky; top: 0; z-index: 1;
-}
-.back-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--bg); padding: 4px;
-  display: flex; align-items: center;
-}
-.detail-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; color: var(--bg); font-weight: 400;
-}
-.detail-body { padding: 20px 16px 40px; }
-.stat-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.stat-box {
-  flex: 1; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 14px 12px; text-align: center;
-}
-.stat-val {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 24px; font-weight: 600; color: var(--ink);
-}
-.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
-
-/* Payment history list */
-.history-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 0; border-bottom: 1px solid var(--stone);
-}
-.history-item:last-child { border-bottom: none; }
-.history-service { font-size: 14px; font-weight: 500; }
-.history-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.history-amount { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--green); }
-
-/* Section heading */
-.section-heading {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--muted);
-  margin: 20px 0 10px;
-}
-
-/* Add client form overlay */
-.overlay {
-  position: fixed; inset: 0; background: var(--bg); z-index: 300;
-  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto;
-}
-.overlay.open { transform: translateY(0); }
-.overlay-header {
-  background: var(--ink); padding: 16px 20px;
-  display: flex; align-items: center; gap: 14px;
-  position: sticky; top: 0;
-}
-.overlay-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px; color: var(--bg);
-}
-.overlay-body { padding: 20px 16px 60px; }
-
-/* Toast */
-.toast {
-  position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px);
-  left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--ink); color: var(--bg);
-  padding: 12px 22px; border-radius: 30px;
-  font-size: 14px; font-weight: 500;
-  opacity: 0; transition: opacity 0.2s, transform 0.2s;
-  z-index: 400; white-space: nowrap;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-  pointer-events: none;
-}
-.toast.success { background: var(--green); }
-.toast.error   { background: var(--accent); }
-.toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Loading skeleton */
-.skeleton {
-  background: linear-gradient(90deg, var(--stone) 25%, var(--border) 50%, var(--stone) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite;
-  border-radius: 8px; height: 18px; margin-bottom: 8px;
-}
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-/* Discount row */
-.discount-custom { margin-top: 8px; display: none; }
-
-/* Empty state */
-.empty-state {
-  text-align: center; padding: 48px 20px;
-  color: var(--muted);
-}
-.empty-state svg { opacity: 0.3; margin-bottom: 12px; }
-.empty-state p { font-size: 14px; }
-
-/* Config fields in setup */
-.config-pair { display: flex; gap: 8px; }
-.config-pair input { flex: 1; }
-.config-pair button {
-  padding: 13px 16px; background: var(--ink); color: var(--bg);
-  border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif;
-  font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
-  flex-shrink: 0;
-}
-
-hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+.discount-custom{display:none;margin-top:8px}
+.config-pair{display:flex;gap:8px}
+.config-pair input{flex:1}
+.config-pair button{padding:13px 16px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
 </style>
 </head>
 <body>
 <div id="app">
-
   <header>
     <div>
-      <div class="header-sub">Jay's</div>
-      <div class="header-title">Tai Chi School</div>
+      <div class="header-sub">Tai Chi</div>
+      <div class="header-title">With Jay</div>
     </div>
-    <div class="sync-pill" onclick="loadSheetData()" id="syncPill">
+    <div class="sync-pill" onclick="loadData()" id="syncPill">
       <div class="sync-dot loading" id="syncDot"></div>
       <span class="sync-text" id="syncText">connecting…</span>
     </div>
@@ -389,75 +157,48 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
 
   <div id="screens">
 
-    <!-- ══ SCREEN: SETUP ══════════════════════════════════ -->
+    <!-- SETUP -->
     <div class="screen active" id="screen-setup">
       <div class="setup-card">
         <h2>Welcome, Jay</h2>
-        <p>One-time setup to connect this app to your Google Sheet. Takes about 10 minutes on a laptop.</p>
+        <p>One-time setup — paste your Google Apps Script URL below. This replaces the old login system completely.</p>
         <ol class="setup-steps">
-          <li><div class="step-num">1</div><div>Go to <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a> and create a new project</div></li>
-          <li><div class="step-num">2</div><div>Search for <strong>Google Sheets API</strong> and enable it</div></li>
-          <li><div class="step-num">3</div><div>Go to <strong>Credentials → Create → API Key</strong> and copy it</div></li>
-          <li><div class="step-num">4</div><div>Create an <strong>OAuth 2.0 Client ID</strong> (Web application). Add the URL where this file is hosted as an authorised origin</div></li>
-          <li><div class="step-num">5</div><div>Paste both keys and your Sheet ID below, then tap Save</div></li>
+          <li><div class="step-num">1</div><div>Open your Google Sheet → click <strong>Extensions → Apps Script</strong></div></li>
+          <li><div class="step-num">2</div><div>Delete anything in there and paste the entire contents of the <code>google-apps-script.js</code> file I gave you</div></li>
+          <li><div class="step-num">3</div><div>Click <strong>Deploy → New deployment → Web app</strong></div></li>
+          <li><div class="step-num">4</div><div>Set <strong>Execute as: Me</strong> and <strong>Who has access: Anyone</strong> → click Deploy</div></li>
+          <li><div class="step-num">5</div><div>Copy the <strong>Web app URL</strong> and paste it below</div></li>
         </ol>
-
         <div class="field-group">
-          <label class="field-label">API Key</label>
-          <input type="text" id="cfg-apikey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
-        </div>
-        <div class="field-group">
-          <label class="field-label">OAuth Client ID</label>
-          <input type="text" id="cfg-clientid" placeholder="123456-abc.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
-        </div>
-        <div class="field-group">
-          <label class="field-label">Spreadsheet ID <span style="font-weight:300;text-transform:none;letter-spacing:0">(the long string in your Sheet URL between /d/ and /edit)</span></label>
+          <label class="field-label">Apps Script Web App URL</label>
           <div class="config-pair">
-            <input type="text" id="cfg-sheetid" placeholder="1kuLFB6KHW…" autocomplete="off" spellcheck="false">
+            <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/..." autocomplete="off" spellcheck="false">
             <button onclick="saveConfig()">Save</button>
           </div>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px">Your credentials are stored in your browser only — never sent anywhere except Google.</p>
+        <p style="font-size:12px;color:var(--muted)">After this, no more login screens — ever.</p>
       </div>
     </div>
 
-    <!-- ══ SCREEN: AUTH ═══════════════════════════════════ -->
-    <div class="screen" id="screen-auth">
-      <div class="setup-card" style="text-align:center;padding:40px 24px;">
-        <div style="font-size:40px;margin-bottom:16px">🔐</div>
-        <h2 style="margin-bottom:10px">Sign in to continue</h2>
-        <p>Connect your Google account so the app can read and write to your spreadsheet.</p>
-        <button class="btn-primary" onclick="signIn()" style="margin-top:8px">Sign in with Google</button>
-      </div>
-    </div>
-
-    <!-- ══ SCREEN: PAYMENT ════════════════════════════════ -->
+    <!-- PAYMENT -->
     <div class="screen" id="screen-payment">
-
       <div class="field-group">
         <label class="field-label">Date</label>
-        <input type="date" id="pay-date" value="2026-06-03">
+        <input type="date" id="pay-date">
       </div>
-
       <div class="field-group">
         <label class="field-label">Client</label>
-        <input type="text" id="pay-client-search" placeholder="Search name…" oninput="filterSelect('pay-client-select', this.value)" autocomplete="off" style="margin-bottom:6px;background:var(--stone);border-color:transparent;border-radius:12px;">
+        <input type="text" id="pay-client-search" placeholder="Search name…" oninput="filterSelect('pay-client-select',this.value)" autocomplete="off" style="margin-bottom:6px;background:var(--stone);border-color:transparent;border-radius:12px;">
         <div class="select-wrap">
-          <select id="pay-client-select">
-            <option value="" selected="selected">— select client —</option>
-          </select>
+          <select id="pay-client-select"><option value="">— select client —</option></select>
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Service</label>
         <div class="select-wrap">
-          <select id="pay-service-select" onchange="onServiceChange()">
-            <option value="" selected="selected">— select service —</option>
-          </select>
+          <select id="pay-service-select" onchange="onServiceChange()"><option value="">— select service —</option></select>
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Price</label>
         <div class="price-display">
@@ -468,7 +209,6 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:5px">Standard price shown. Enter override if giving a discount.</div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Payment Method</label>
         <div class="pill-group" id="pay-method-pills">
@@ -478,7 +218,6 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
           <div class="pill" data-val="Card" onclick="selectPill('pay-method-pills',this)">Card</div>
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Discount</label>
         <div class="pill-group" id="pay-discount-pills">
@@ -488,42 +227,34 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
           <div class="pill" data-val="Custom" data-pct="custom" onclick="selectDiscount(this)">Custom</div>
         </div>
         <div class="discount-custom" id="discount-custom-wrap">
-          <input type="number" id="pay-custom-discount" placeholder="Discount %" min="0" max="100" oninput="recalcPayment()" style="margin-top:8px">
+          <input type="number" id="pay-custom-discount" placeholder="Discount %" min="0" max="100" oninput="recalcPayment()">
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Notes <span style="font-weight:300;text-transform:none">(optional)</span></label>
         <input type="text" id="pay-notes" placeholder="Any notes…">
       </div>
-
       <div class="total-bar">
         <div class="total-label">Total to log</div>
         <div class="total-amount" id="pay-total">€0.00</div>
       </div>
-
       <button class="btn-primary" id="pay-submit" onclick="submitPayment()">Log Payment →</button>
-
     </div>
 
-    <!-- ══ SCREEN: EXPENSES ════════════════════════════════ -->
+    <!-- EXPENSE -->
     <div class="screen" id="screen-expense">
-
       <div class="field-group">
         <label class="field-label">Date</label>
-        <input type="date" id="exp-date" value="2026-06-03">
+        <input type="date" id="exp-date">
       </div>
-
       <div class="field-group">
         <label class="field-label">Description</label>
         <input type="text" id="exp-desc" placeholder="What was this for?">
       </div>
-
       <div class="field-group">
         <label class="field-label">Amount (€)</label>
         <input type="number" id="exp-amount" placeholder="0.00" min="0" step="0.01">
       </div>
-
       <div class="field-group">
         <label class="field-label">Type</label>
         <div class="pill-group" id="exp-type-pills">
@@ -531,26 +262,17 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
           <div class="pill" data-val="Personal" onclick="selectPill('exp-type-pills',this)">Personal</div>
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Category</label>
         <div class="select-wrap">
           <select id="exp-category">
-            <option value="" selected="selected">— select category —</option>
-            <option>Rent</option>
-            <option>Supplies</option>
-            <option>Utilities</option>
-            <option>Subscriptions</option>
-            <option>Marketing</option>
-            <option>Travel</option>
-            <option>Food</option>
-            <option>Health</option>
-            <option>Personal</option>
-            <option>Other</option>
+            <option value="">— select category —</option>
+            <option>Rent</option><option>Supplies</option><option>Utilities</option>
+            <option>Subscriptions</option><option>Marketing</option><option>Travel</option>
+            <option>Food</option><option>Health</option><option>Personal</option><option>Other</option>
           </select>
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Payment Method</label>
         <div class="pill-group" id="exp-method-pills">
@@ -560,105 +282,73 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
           <div class="pill" data-val="Bizum" onclick="selectPill('exp-method-pills',this)">Bizum</div>
         </div>
       </div>
-
       <div class="field-group">
         <label class="field-label">Notes <span style="font-weight:300;text-transform:none">(optional)</span></label>
         <input type="text" id="exp-notes" placeholder="Any notes…">
       </div>
-
       <button class="btn-primary" id="exp-submit" onclick="submitExpense()">Log Expense →</button>
-
     </div>
 
-    <!-- ══ SCREEN: CLIENTS ════════════════════════════════ -->
+    <!-- CLIENTS -->
     <div class="screen" id="screen-clients">
-
       <div class="search-wrap">
-        <svg class="search-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <svg class="search-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="client-search" placeholder="Search clients…" oninput="renderClientList()" autocomplete="off">
       </div>
-
-      <button class="btn-secondary" onclick="openAddClient()" style="margin-bottom:16px;margin-top:0">
-        + Add New Client
-      </button>
-
-      <div id="client-list">
-        <div class="skeleton" style="height:72px;border-radius:14px;margin-bottom:10px"></div>
-        <div class="skeleton" style="height:72px;border-radius:14px;margin-bottom:10px"></div>
-        <div class="skeleton" style="height:72px;border-radius:14px;margin-bottom:10px"></div>
-      </div>
-
+      <button class="btn-secondary" onclick="openAddClient()" style="margin-bottom:16px;margin-top:0">+ Add New Client</button>
+      <div id="client-list"><div style="text-align:center;padding:40px;color:var(--muted)">Loading clients…</div></div>
     </div>
 
-  </div><!-- /screens -->
+  </div>
 
   <nav>
     <button class="nav-btn" id="nav-payment" onclick="showScreen('payment')">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       <span class="nav-label">Payment</span>
     </button>
     <button class="nav-btn" id="nav-expense" onclick="showScreen('expense')">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       <span class="nav-label">Expense</span>
     </button>
     <button class="nav-btn" id="nav-clients" onclick="showScreen('clients')">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span class="nav-label">Clients</span>
     </button>
   </nav>
+</div>
 
-</div><!-- /app -->
-
-<!-- ── Client Detail Panel ──────────────────────────────── -->
+<!-- Client Detail -->
 <div class="detail-panel" id="client-detail">
   <div class="detail-header">
     <button class="back-btn" onclick="closeClientDetail()">
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     </button>
     <div class="detail-name" id="detail-client-name">—</div>
   </div>
   <div class="detail-body">
     <div class="stat-row">
-      <div class="stat-box">
-        <div class="stat-val" id="detail-total">€0</div>
-        <div class="stat-lbl">Paid This Year</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="detail-count">0</div>
-        <div class="stat-lbl">Payments</div>
-      </div>
+      <div class="stat-box"><div class="stat-val" id="detail-total">€0</div><div class="stat-lbl">Paid This Year</div></div>
+      <div class="stat-box"><div class="stat-val" id="detail-count">0</div><div class="stat-lbl">Payments</div></div>
     </div>
     <div id="detail-contact" style="margin-bottom:16px"></div>
-    <div class="section-heading">Payment History</div>
+    <div class="section-heading">Recent Payments</div>
     <div id="detail-history"></div>
   </div>
 </div>
 
-<!-- ── Add Client Overlay ──────────────────────────────── -->
+<!-- Add Client -->
 <div class="overlay" id="add-client-overlay">
   <div class="overlay-header">
     <button class="back-btn" onclick="closeAddClient()">
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     </button>
     <div class="overlay-title">New Client</div>
   </div>
   <div class="overlay-body">
-    <div class="field-group">
-      <label class="field-label">Full Name *</label>
-      <input type="text" id="new-name" placeholder="First and last name">
-    </div>
-    <div class="field-group">
-      <label class="field-label">Phone / WhatsApp</label>
-      <input type="tel" id="new-phone" placeholder="+34 600 000 000">
-    </div>
-    <div class="field-group">
-      <label class="field-label">Email</label>
-      <input type="email" id="new-email" placeholder="name@email.com">
-    </div>
-    <div class="field-group">
-      <label class="field-label">Group / Location</label>
-      <input type="text" id="new-group" placeholder="e.g. Tuesday class, Private">
-    </div>
+    <div class="field-group"><label class="field-label">Full Name *</label><input type="text" id="new-name" placeholder="First and last name"></div>
+    <div class="field-group"><label class="field-label">Phone / WhatsApp</label><input type="tel" id="new-phone" placeholder="+34 600 000 000"></div>
+    <div class="field-group"><label class="field-label">Email</label><input type="email" id="new-email" placeholder="name@email.com"></div>
+    <div class="field-group"><label class="field-label">Group / Location</label><input type="text" id="new-group" placeholder="e.g. Tuesday class"></div>
     <div class="field-group">
       <label class="field-label">Status</label>
       <div class="pill-group" id="new-status-pills">
@@ -667,10 +357,7 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
         <div class="pill" data-val="Inactive" onclick="selectPill('new-status-pills',this)">Inactive</div>
       </div>
     </div>
-    <div class="field-group">
-      <label class="field-label">Notes</label>
-      <textarea id="new-notes" placeholder="Any notes…"></textarea>
-    </div>
+    <div class="field-group"><label class="field-label">Notes</label><textarea id="new-notes" placeholder="Any notes…"></textarea></div>
     <button class="btn-primary" id="add-client-btn" onclick="submitNewClient()">Add Client →</button>
   </div>
 </div>
@@ -678,24 +365,17 @@ hr.divider { border: none; border-top: 1px solid var(--stone); margin: 20px 0; }
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════
-let config    = JSON.parse(localStorage.getItem('tc_cfg') || '{}');
-let gapiReady = false, gisReady = false, tokenClient = null;
-let clients   = [];   // [{id, name, phone, email, group, status, joinDate, totalPaid}]
-let services  = [];   // [{name, category, price}]
-let payments  = [];   // raw payment rows for history lookup
-let discountState = {label:'', pct:0};
+// ── State ─────────────────────────────────────────────
+let SCRIPT_URL = localStorage.getItem('tc_script_url') || '';
+let clients=[], services=[], payments=[];
+let discountState={label:'',pct:0};
 
-// ═══════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════
+// ── Init ──────────────────────────────────────────────
 window.onload = () => {
   setTodayDates();
-  if (config.apiKey && config.clientId && config.sheetId) {
-    showScreen('auth', true);
-    initGoogleAPIs();
+  if (SCRIPT_URL) {
+    showScreen('payment');
+    loadData();
   }
 };
 
@@ -705,344 +385,192 @@ function setTodayDates() {
   document.getElementById('exp-date').value = t;
 }
 
-// ═══════════════════════════════════════════════════════
-//  CONFIG
-// ═══════════════════════════════════════════════════════
+// ── Config ────────────────────────────────────────────
 function saveConfig() {
-  const apiKey   = document.getElementById('cfg-apikey').value.trim();
-  const clientId = document.getElementById('cfg-clientid').value.trim();
-  const sheetId  = document.getElementById('cfg-sheetid').value.trim();
-  if (!apiKey || !clientId || !sheetId) { showToast('Please fill all three fields', 'error'); return; }
-  config = {apiKey, clientId, sheetId};
-  localStorage.setItem('tc_cfg', JSON.stringify(config));
-  showToast('Saved! Now sign in with Google.');
-  showScreen('auth', true);
-  initGoogleAPIs();
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!url || !url.includes('script.google.com')) { showToast('Please paste your Apps Script URL', 'error'); return; }
+  SCRIPT_URL = url;
+  localStorage.setItem('tc_script_url', url);
+  showToast('Connected!', 'success');
+  showScreen('payment');
+  loadData();
 }
 
-// ═══════════════════════════════════════════════════════
-//  GOOGLE API
-// ═══════════════════════════════════════════════════════
-function initGoogleAPIs() {
-  const s1 = document.createElement('script');
-  s1.src = 'https://apis.google.com/js/api.js';
-  s1.onload = () => gapi.load('client', async () => {
-    await gapi.client.init({
-      apiKey: config.apiKey,
-      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-    });
-    gapiReady = true; maybeShowAuth();
-  });
-  document.head.appendChild(s1);
-
-  const s2 = document.createElement('script');
-  s2.src = 'https://accounts.google.com/gsi/client';
-  s2.onload = () => {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: config.clientId,
-      scope: 'https://www.googleapis.com/auth/spreadsheets',
-      callback: async (resp) => {
-        if (resp.error) { showToast('Auth failed', 'error'); return; }
-        gapi.client.setToken({access_token: resp.access_token});
-        setSyncState('loading');
-        await loadSheetData();
-        showScreen('payment');
-      }
-    });
-    gisReady = true; maybeShowAuth();
-  };
-  document.head.appendChild(s2);
+// ── API calls ─────────────────────────────────────────
+async function api(action, params={}) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const resp = await fetch(url.toString());
+  return resp.json();
 }
 
-function maybeShowAuth() {
-  if (gapiReady && gisReady) setSyncState('idle');
-}
-
-function signIn() { tokenClient.requestAccessToken({prompt:'consent'}); }
-
-// ═══════════════════════════════════════════════════════
-//  SHEET DATA
-// ═══════════════════════════════════════════════════════
-async function loadSheetData() {
+async function loadData() {
   setSyncState('loading');
   try {
-    const [crmR, svcR, payR] = await Promise.all([
-      gapi.client.sheets.spreadsheets.values.get({spreadsheetId: config.sheetId, range: 'Clients!A2:J'}),
-      gapi.client.sheets.spreadsheets.values.get({spreadsheetId: config.sheetId, range: 'Services!A2:E'}),
-      gapi.client.sheets.spreadsheets.values.get({spreadsheetId: config.sheetId, range: 'Payments!A2:I'}),
+    const [cR, sR, pR] = await Promise.all([
+      api('getClients'), api('getServices'), api('getPayments')
     ]);
-
-    // Parse clients — columns: ID, Name, Phone, Email, WhatsApp, Group, Notes, Status, JoinDate, TotalPaid
-    clients = (crmR.result.values || [])
-      .filter(r => r[1])
-      .map(r => ({
-        id: r[0]||'', name: r[1]||'', phone: r[2]||'', email: r[3]||'',
-        whatsapp: r[4]||'', group: r[5]||'', notes: r[6]||'',
-        status: r[7]||'Active', joinDate: r[8]||'', totalPaid: parseFloat(r[9])||0
-      }))
-      .sort((a,b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
-    // Parse services
-    services = (svcR.result.values || [])
-      .filter(r => r[0] && r[3] !== 'No')
-      .map(r => ({name: r[0].trim(), category: r[1]||'', price: parseFloat(r[2])||0}));
-
-    // Parse payments for history
-    payments = (payR.result.values || [])
-      .filter(r => r[0])
-      .map(r => ({
-        dateSerial: r[0], client: r[1]||'', service: r[2]||'',
-        category: r[3]||'', method: r[4]||'',
-        stdPrice: parseFloat(r[5])||0, paid: parseFloat(r[6])||0,
-        discount: r[7]||'', notes: r[8]||''
-      }));
-
+    clients  = (cR.clients  || []).sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    services = sR.services || [];
+    payments = pR.payments || [];
     populatePaymentDropdowns();
     renderClientList();
     setSyncState('live');
   } catch(e) {
     console.error(e);
     setSyncState('error');
-    showToast('Could not sync — check connection', 'error');
+    showToast('Sync failed — check connection','error');
   }
 }
 
-function serialToDate(serial) {
-  if (!serial) return '—';
-  const d = new Date((serial - 25569) * 86400 * 1000);
-  return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
-}
-
-// ═══════════════════════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════════════════════
-let currentScreen = 'setup';
-function showScreen(name, skipNav=false) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+// ── Navigation ────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
-  if (!skipNav) {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const nb = document.getElementById(`nav-${name}`);
-    if (nb) nb.classList.add('active');
-  }
-  currentScreen = name;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById(`nav-${name}`);
+  if(nb) nb.classList.add('active');
 }
 
-// ═══════════════════════════════════════════════════════
-//  SYNC STATUS
-// ═══════════════════════════════════════════════════════
 function setSyncState(state) {
-  const dot = document.getElementById('syncDot');
-  const txt = document.getElementById('syncText');
-  dot.className = 'sync-dot';
-  if (state === 'live') {
-    const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    txt.textContent = `synced ${t}`;
-  } else if (state === 'loading') {
-    dot.classList.add('loading');
-    txt.textContent = 'syncing…';
-  } else if (state === 'error') {
-    dot.classList.add('error');
-    txt.textContent = 'sync error';
-  } else {
-    dot.classList.add('loading');
-    txt.textContent = 'connecting…';
-  }
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  dot.className='sync-dot';
+  if(state==='live'){const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});txt.textContent=`synced ${t}`;}
+  else if(state==='loading'){dot.classList.add('loading');txt.textContent='syncing…';}
+  else{dot.classList.add('error');txt.textContent='sync error';}
 }
 
-// ═══════════════════════════════════════════════════════
-//  PAYMENT SCREEN
-// ═══════════════════════════════════════════════════════
+// ── Payment screen ────────────────────────────────────
 function populatePaymentDropdowns() {
-  // Clients
-  const cs = document.getElementById('pay-client-select');
-  cs.innerHTML = '<option value="">— select client —</option>';
-  clients.filter(c => c.status === 'Active' || c.status === 'active').forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.name; o.textContent = c.name;
-    cs.appendChild(o);
+  const cs=document.getElementById('pay-client-select');
+  cs.innerHTML='<option value="">— select client —</option>';
+  clients.filter(c=>c.status==='Active'||c.status==='active').forEach(c=>{
+    const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; cs.appendChild(o);
   });
-
-  // Services grouped by category
-  const ss = document.getElementById('pay-service-select');
-  ss.innerHTML = '<option value="">— select service —</option>';
-  const cats = {};
-  services.forEach(s => {
-    if (!cats[s.category]) cats[s.category] = [];
-    cats[s.category].push(s);
-  });
-  Object.entries(cats).forEach(([cat, svcs]) => {
-    const og = document.createElement('optgroup');
-    og.label = cat || 'Other';
-    svcs.forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.name; o.dataset.price = s.price;
-      o.textContent = s.price > 0 ? `${s.name} (€${s.price})` : s.name;
-      og.appendChild(o);
+  const ss=document.getElementById('pay-service-select');
+  ss.innerHTML='<option value="">— select service —</option>';
+  const cats={};
+  services.forEach(s=>{if(!cats[s.category])cats[s.category]=[];cats[s.category].push(s);});
+  Object.entries(cats).forEach(([cat,svcs])=>{
+    const og=document.createElement('optgroup'); og.label=cat||'Other';
+    svcs.forEach(s=>{
+      const o=document.createElement('option'); o.value=s.name; o.dataset.price=s.price;
+      o.textContent=s.price>0?`${s.name} (€${s.price})`:s.name; og.appendChild(o);
     });
     ss.appendChild(og);
   });
 }
 
-function filterSelect(selectId, query) {
-  const sel = document.getElementById(selectId);
-  const q = query.toLowerCase();
-  Array.from(sel.options).forEach(o => {
-    if (!o.value) return;
-    o.style.display = o.text.toLowerCase().includes(q) ? '' : 'none';
-  });
+function filterSelect(id,q){
+  const sel=document.getElementById(id);
+  Array.from(sel.options).forEach(o=>{if(!o.value)return;o.style.display=o.text.toLowerCase().includes(q.toLowerCase())?'':'none';});
 }
 
-function onServiceChange() {
-  const sel = document.getElementById('pay-service-select');
-  const opt = sel.options[sel.selectedIndex];
-  const price = opt ? parseFloat(opt.dataset.price) : 0;
-  const badge = document.getElementById('std-price-badge');
-  badge.textContent = price > 0 ? `€${price.toFixed(2)}` : '—';
-  badge.classList.toggle('has-val', price > 0);
-  document.getElementById('pay-custom-price').value = '';
+function onServiceChange(){
+  const sel=document.getElementById('pay-service-select');
+  const opt=sel.options[sel.selectedIndex];
+  const price=opt?parseFloat(opt.dataset.price):0;
+  const badge=document.getElementById('std-price-badge');
+  badge.textContent=price>0?`€${price.toFixed(2)}`:'—';
+  badge.classList.toggle('has-val',price>0);
+  document.getElementById('pay-custom-price').value='';
   recalcPayment();
 }
 
-function selectPill(groupId, el) {
-  document.querySelectorAll(`#${groupId} .pill`).forEach(p => p.classList.remove('active'));
+function selectPill(groupId,el){
+  document.querySelectorAll(`#${groupId} .pill`).forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
 }
 
-function selectDiscount(el) {
-  document.querySelectorAll('#pay-discount-pills .pill').forEach(p => p.classList.remove('active'));
+function selectDiscount(el){
+  document.querySelectorAll('#pay-discount-pills .pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
-  const pct = el.dataset.pct;
-  const wrap = document.getElementById('discount-custom-wrap');
-  if (pct === 'custom') {
-    wrap.style.display = 'block';
-    discountState = {label: 'Custom', pct: 0};
-  } else {
-    wrap.style.display = 'none';
-    discountState = {label: el.dataset.val, pct: parseFloat(pct)||0};
-  }
+  const pct=el.dataset.pct;
+  const wrap=document.getElementById('discount-custom-wrap');
+  if(pct==='custom'){wrap.style.display='block';discountState={label:'Custom',pct:0};}
+  else{wrap.style.display='none';discountState={label:el.dataset.val,pct:parseFloat(pct)||0};}
   recalcPayment();
 }
 
-function recalcPayment() {
-  const sel = document.getElementById('pay-service-select');
-  const opt = sel.options[sel.selectedIndex];
-  const stdPrice = opt ? parseFloat(opt.dataset.price)||0 : 0;
-  const override = parseFloat(document.getElementById('pay-custom-price').value);
-  let base = isNaN(override) ? stdPrice : override;
-
-  let pct = discountState.pct;
-  if (discountState.label === 'Custom') {
-    const cp = parseFloat(document.getElementById('pay-custom-discount').value);
-    if (!isNaN(cp)) pct = cp;
-  }
-  const total = base * (1 - pct/100);
-  document.getElementById('pay-total').textContent =
-    isNaN(total) ? '€0.00' : `€${total.toFixed(2)}`;
+function recalcPayment(){
+  const sel=document.getElementById('pay-service-select');
+  const opt=sel.options[sel.selectedIndex];
+  const std=opt?parseFloat(opt.dataset.price)||0:0;
+  const ov=parseFloat(document.getElementById('pay-custom-price').value);
+  let base=isNaN(ov)?std:ov;
+  let pct=discountState.pct;
+  if(discountState.label==='Custom'){const cp=parseFloat(document.getElementById('pay-custom-discount').value);if(!isNaN(cp))pct=cp;}
+  const total=base*(1-pct/100);
+  document.getElementById('pay-total').textContent=isNaN(total)?'€0.00':`€${total.toFixed(2)}`;
 }
 
-async function submitPayment() {
-  const date    = document.getElementById('pay-date').value;
-  const client  = document.getElementById('pay-client-select').value;
-  const service = document.getElementById('pay-service-select').value;
-  if (!date || !client || !service) { showToast('Date, client & service required', 'error'); return; }
-
-  const sel = document.getElementById('pay-service-select');
-  const opt = sel.options[sel.selectedIndex];
-  const stdPrice = opt ? parseFloat(opt.dataset.price)||0 : 0;
-  const category = opt ? (services.find(s=>s.name===service)||{}).category||'' : '';
-  const override = parseFloat(document.getElementById('pay-custom-price').value);
-  let base = isNaN(override) ? stdPrice : override;
-
-  let pct = discountState.pct, discLabel = discountState.label;
-  if (discLabel === 'Custom') {
-    const cp = parseFloat(document.getElementById('pay-custom-discount').value);
-    if (!isNaN(cp)) { pct = cp; discLabel = `Custom (${cp}%)`; }
-  }
-  const total = parseFloat((base * (1 - pct/100)).toFixed(2));
-  const method = document.querySelector('#pay-method-pills .pill.active')?.dataset.val || 'Transfer';
-  const notes  = document.getElementById('pay-notes').value;
-
-  // Date serial
-  const d = new Date(date);
-  const serial = Math.round((d - new Date(1899,11,30)) / 86400000);
-
-  const btn = document.getElementById('pay-submit');
-  btn.disabled = true; btn.textContent = 'Logging…';
-  try {
-    await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: config.sheetId, range: 'Payments!A:I',
-      valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS',
-      resource: { values: [[serial, client, service, category, method,
-        stdPrice, total, discLabel||'', notes]] }
-    });
-    showToast('Payment logged ✓', 'success');
+async function submitPayment(){
+  const date=document.getElementById('pay-date').value;
+  const client=document.getElementById('pay-client-select').value;
+  const service=document.getElementById('pay-service-select').value;
+  if(!date||!client||!service){showToast('Date, client & service required','error');return;}
+  const sel=document.getElementById('pay-service-select');
+  const opt=sel.options[sel.selectedIndex];
+  const stdPrice=opt?parseFloat(opt.dataset.price)||0:0;
+  const category=(services.find(s=>s.name===service)||{}).category||'';
+  const ov=parseFloat(document.getElementById('pay-custom-price').value);
+  let base=isNaN(ov)?stdPrice:ov;
+  let pct=discountState.pct, discLabel=discountState.label;
+  if(discLabel==='Custom'){const cp=parseFloat(document.getElementById('pay-custom-discount').value);if(!isNaN(cp)){pct=cp;discLabel=`Custom (${cp}%)`;}}
+  const total=parseFloat((base*(1-pct/100)).toFixed(2));
+  const method=document.querySelector('#pay-method-pills .pill.active')?.dataset.val||'Transfer';
+  const notes=document.getElementById('pay-notes').value;
+  const btn=document.getElementById('pay-submit');
+  btn.disabled=true;btn.textContent='Logging…';
+  try{
+    await api('logPayment',{date,client,service,category,method,stdPrice,paid:total,discount:discLabel||'',notes});
+    showToast('Payment logged ✓','success');
     resetPaymentForm();
-    // Refresh data quietly
-    loadSheetData();
-  } catch(e) {
-    showToast('Error saving — try again', 'error');
-    console.error(e);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Log Payment →';
-  }
+    loadData();
+  }catch(e){showToast('Error — try again','error');console.error(e);}
+  finally{btn.disabled=false;btn.textContent='Log Payment →';}
 }
 
-function resetPaymentForm() {
-  document.getElementById('pay-client-select').value = '';
-  document.getElementById('pay-client-search').value = '';
+function resetPaymentForm(){
+  document.getElementById('pay-client-select').value='';
+  document.getElementById('pay-client-search').value='';
   filterSelect('pay-client-select','');
-  document.getElementById('pay-service-select').value = '';
-  document.getElementById('pay-custom-price').value = '';
-  document.getElementById('pay-notes').value = '';
-  document.getElementById('std-price-badge').textContent = '—';
+  document.getElementById('pay-service-select').value='';
+  document.getElementById('pay-custom-price').value='';
+  document.getElementById('pay-notes').value='';
+  document.getElementById('std-price-badge').textContent='—';
   document.getElementById('std-price-badge').classList.remove('has-val');
-  document.getElementById('pay-total').textContent = '€0.00';
+  document.getElementById('pay-total').textContent='€0.00';
   document.querySelectorAll('#pay-discount-pills .pill').forEach((p,i)=>p.classList.toggle('active',i===0));
   document.querySelectorAll('#pay-method-pills .pill').forEach((p,i)=>p.classList.toggle('active',i===0));
   document.getElementById('discount-custom-wrap').style.display='none';
-  discountState = {label:'',pct:0};
+  discountState={label:'',pct:0};
   setTodayDates();
 }
 
-// ═══════════════════════════════════════════════════════
-//  EXPENSE SCREEN
-// ═══════════════════════════════════════════════════════
-async function submitExpense() {
-  const date   = document.getElementById('exp-date').value;
-  const desc   = document.getElementById('exp-desc').value.trim();
-  const amount = parseFloat(document.getElementById('exp-amount').value);
-  const cat    = document.getElementById('exp-category').value;
-  if (!date || !desc || isNaN(amount) || !cat) {
-    showToast('Please fill date, description, amount & category', 'error'); return;
-  }
-  const type   = document.querySelector('#exp-type-pills .pill.active')?.dataset.val || 'Business';
-  const method = document.querySelector('#exp-method-pills .pill.active')?.dataset.val || 'Card';
-  const notes  = document.getElementById('exp-notes').value;
-
-  const d = new Date(date);
-  const serial = Math.round((d - new Date(1899,11,30)) / 86400000);
-
-  const btn = document.getElementById('exp-submit');
-  btn.disabled = true; btn.textContent = 'Logging…';
-  try {
-    await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: config.sheetId, range: 'Expenses!A:G',
-      valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS',
-      resource: { values: [[serial, desc, cat, amount, type, method, notes]] }
-    });
-    showToast('Expense logged ✓', 'success');
+// ── Expense screen ────────────────────────────────────
+async function submitExpense(){
+  const date=document.getElementById('exp-date').value;
+  const description=document.getElementById('exp-desc').value.trim();
+  const amount=parseFloat(document.getElementById('exp-amount').value);
+  const category=document.getElementById('exp-category').value;
+  if(!date||!description||isNaN(amount)||!category){showToast('Please fill all fields','error');return;}
+  const type=document.querySelector('#exp-type-pills .pill.active')?.dataset.val||'Business';
+  const method=document.querySelector('#exp-method-pills .pill.active')?.dataset.val||'Card';
+  const notes=document.getElementById('exp-notes').value;
+  const btn=document.getElementById('exp-submit');
+  btn.disabled=true;btn.textContent='Logging…';
+  try{
+    await api('logExpense',{date,description,category,amount,type,method,notes});
+    showToast('Expense logged ✓','success');
     resetExpenseForm();
-  } catch(e) {
-    showToast('Error saving — try again', 'error');
-    console.error(e);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Log Expense →';
-  }
+  }catch(e){showToast('Error — try again','error');console.error(e);}
+  finally{btn.disabled=false;btn.textContent='Log Expense →';}
 }
 
-function resetExpenseForm() {
-  ['exp-desc','exp-notes'].forEach(id => document.getElementById(id).value='');
+function resetExpenseForm(){
+  ['exp-desc','exp-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('exp-amount').value='';
   document.getElementById('exp-category').value='';
   document.querySelectorAll('#exp-type-pills .pill').forEach((p,i)=>p.classList.toggle('active',i===0));
@@ -1050,123 +578,69 @@ function resetExpenseForm() {
   setTodayDates();
 }
 
-// ═══════════════════════════════════════════════════════
-//  CLIENTS SCREEN
-// ═══════════════════════════════════════════════════════
-function renderClientList() {
-  const q = (document.getElementById('client-search')?.value||'').toLowerCase();
-  const list = document.getElementById('client-list');
-  const filtered = clients.filter(c => !q || c.name.toLowerCase().includes(q) ||
-    (c.phone||'').includes(q) || (c.email||'').toLowerCase().includes(q));
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty-state">
-      <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      <p>No clients found</p></div>`;
-    return;
-  }
-  list.innerHTML = filtered.map(c => `
+// ── Clients screen ────────────────────────────────────
+function renderClientList(){
+  const q=(document.getElementById('client-search')?.value||'').toLowerCase();
+  const list=document.getElementById('client-list');
+  const filtered=clients.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q));
+  if(!filtered.length){list.innerHTML='<div class="empty-state"><p>No clients found</p></div>';return;}
+  list.innerHTML=filtered.map(c=>`
     <div class="card" onclick="openClientDetail('${c.name.replace(/'/g,"\\'")}')">
       <div class="card-row">
-        <div>
-          <div class="card-name">${c.name}</div>
-          <div class="card-sub">${c.phone||c.email||c.group||'—'}</div>
-        </div>
+        <div><div class="card-name">${c.name}</div><div class="card-sub">${c.phone||c.email||c.group||'—'}</div></div>
         <div class="card-amount">€${(c.totalPaid||0).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
       </div>
       <span class="card-tag ${c.status==='Active'?'active-tag':''}">${c.status}</span>
     </div>`).join('');
 }
 
-function openClientDetail(name) {
-  const c = clients.find(cl => cl.name === name);
-  if (!c) return;
-  document.getElementById('detail-client-name').textContent = c.name;
-  document.getElementById('detail-total').textContent = `€${(c.totalPaid||0).toLocaleString('en',{minimumFractionDigits:0})}`;
-
-  // Payment history for this client
-  const cp = payments.filter(p => p.client === name)
-    .sort((a,b) => b.dateSerial - a.dateSerial).slice(0,10);
-  document.getElementById('detail-count').textContent = cp.length;
-
-  // Contact info
-  const contacts = [c.phone,c.email,c.group].filter(Boolean);
-  document.getElementById('detail-contact').innerHTML = contacts.map(v =>
-    `<div style="font-size:13px;color:var(--muted);padding:4px 0">${v}</div>`).join('');
-
-  // History
-  document.getElementById('detail-history').innerHTML = cp.length
-    ? cp.map(p => `
-      <div class="history-item">
-        <div>
-          <div class="history-service">${p.service}</div>
-          <div class="history-date">${serialToDate(p.dateSerial)} · ${p.method}</div>
-        </div>
-        <div class="history-amount">€${p.paid.toFixed(0)}</div>
-      </div>`).join('')
-    : '<div style="color:var(--muted);font-size:14px;padding:16px 0">No payments recorded yet</div>';
-
+function openClientDetail(name){
+  const c=clients.find(cl=>cl.name===name);
+  if(!c)return;
+  document.getElementById('detail-client-name').textContent=c.name;
+  document.getElementById('detail-total').textContent=`€${(c.totalPaid||0).toLocaleString('en',{minimumFractionDigits:0})}`;
+  const cp=payments.filter(p=>p.client===name).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+  document.getElementById('detail-count').textContent=cp.length;
+  const contacts=[c.phone,c.email,c.group].filter(Boolean);
+  document.getElementById('detail-contact').innerHTML=contacts.map(v=>`<div style="font-size:13px;color:var(--muted);padding:4px 0">${v}</div>`).join('');
+  document.getElementById('detail-history').innerHTML=cp.length
+    ?cp.map(p=>`<div class="history-item"><div><div class="history-service">${p.service}</div><div class="history-date">${p.date?new Date(p.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''} · ${p.method}</div></div><div class="history-amount">€${(p.paid||0).toFixed(0)}</div></div>`).join('')
+    :'<div style="color:var(--muted);font-size:14px;padding:16px 0">No payments recorded yet</div>';
   document.getElementById('client-detail').classList.add('open');
 }
 
-function closeClientDetail() {
-  document.getElementById('client-detail').classList.remove('open');
-}
+function closeClientDetail(){document.getElementById('client-detail').classList.remove('open');}
+function openAddClient(){document.getElementById('add-client-overlay').classList.add('open');}
+function closeAddClient(){document.getElementById('add-client-overlay').classList.remove('open');}
 
-// ═══════════════════════════════════════════════════════
-//  ADD CLIENT
-// ═══════════════════════════════════════════════════════
-function openAddClient() {
-  document.getElementById('add-client-overlay').classList.add('open');
-}
-function closeAddClient() {
-  document.getElementById('add-client-overlay').classList.remove('open');
-}
-
-async function submitNewClient() {
-  const name   = document.getElementById('new-name').value.trim();
-  if (!name) { showToast('Name is required', 'error'); return; }
-  const phone  = document.getElementById('new-phone').value.trim();
-  const email  = document.getElementById('new-email').value.trim();
-  const group  = document.getElementById('new-group').value.trim();
-  const status = document.querySelector('#new-status-pills .pill.active')?.dataset.val || 'Active';
-  const notes  = document.getElementById('new-notes').value.trim();
-  const today  = new Date().toISOString().split('T')[0];
-  const newId  = clients.length + 1;
-
-  const btn = document.getElementById('add-client-btn');
-  btn.disabled = true; btn.textContent = 'Adding…';
-  try {
-    await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: config.sheetId, range: 'Clients!A:J',
-      valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS',
-      resource: { values: [[newId, name, phone, email, phone, group, notes, status, today, 0]] }
-    });
-    showToast(`${name} added ✓`, 'success');
+async function submitNewClient(){
+  const name=document.getElementById('new-name').value.trim();
+  if(!name){showToast('Name is required','error');return;}
+  const phone=document.getElementById('new-phone').value.trim();
+  const email=document.getElementById('new-email').value.trim();
+  const group=document.getElementById('new-group').value.trim();
+  const status=document.querySelector('#new-status-pills .pill.active')?.dataset.val||'Active';
+  const notes=document.getElementById('new-notes').value.trim();
+  const btn=document.getElementById('add-client-btn');
+  btn.disabled=true;btn.textContent='Adding…';
+  try{
+    await api('addClient',{name,phone,email,group,status,notes});
+    showToast(`${name} added ✓`,'success');
     closeAddClient();
-    // Reset form
     ['new-name','new-phone','new-email','new-group','new-notes'].forEach(id=>document.getElementById(id).value='');
     document.querySelectorAll('#new-status-pills .pill').forEach((p,i)=>p.classList.toggle('active',i===0));
-    await loadSheetData();
-  } catch(e) {
-    showToast('Error saving — try again', 'error');
-    console.error(e);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Add Client →';
-  }
+    await loadData();
+  }catch(e){showToast('Error — try again','error');console.error(e);}
+  finally{btn.disabled=false;btn.textContent='Add Client →';}
 }
 
-// ═══════════════════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════════════════
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type}`;
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type}`;
   setTimeout(()=>t.classList.add('show'),10);
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 </script>
-
-
-</body></html>
+</body>
+</html>

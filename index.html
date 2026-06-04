@@ -241,7 +241,8 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
         <div class="pill-group" id="pay-discount-pills">
           <div class="pill active" data-val="" data-pct="0" onclick="selectDiscount(this)">None</div>
           <div class="pill" data-val="Couples (5%)" data-pct="5" onclick="selectDiscount(this)">Couples 5%</div>
-          <div class="pill" data-val="Student (10%)" data-pct="10" onclick="selectDiscount(this)">Student 10%</div>
+          <div class="pill" data-val="3 Month Prepay (5%)" data-pct="5" onclick="selectDiscount(this)">Prepay 5%</div>
+          <div class="pill" data-val="Couples + Prepay (10%)" data-pct="10" onclick="selectDiscount(this)">Couples + Prepay 10%</div>
           <div class="pill" data-val="Custom" data-pct="custom" onclick="selectDiscount(this)">Custom</div>
         </div>
         <div class="discount-custom" id="discount-custom-wrap">
@@ -519,14 +520,10 @@ function saveConfig() {
   if (!url || !url.includes('script.google.com')) { showToast('Please paste your Apps Script URL', 'error'); return; }
   SCRIPT_URL = url;
   localStorage.setItem('tc_script_url', url);
-  showToast('Connected!', 'success');
+  localStorage.removeItem('tc_pin'); // always set a fresh PIN after setup
+  showToast('Connected! Now set your PIN.', 'success');
   showScreen('payment');
-  // First time — ask them to set a PIN
-  if (!localStorage.getItem('tc_pin')) {
-    showPinScreen('set');
-  } else {
-    loadData();
-  }
+  showPinScreen('set');
 }
 
 // ── API calls ─────────────────────────────────────────

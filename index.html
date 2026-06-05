@@ -101,6 +101,7 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
 .card-amount{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--green);font-weight:600}
 .card-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--stone);color:var(--muted);margin-top:6px}
 .card-tag.active-tag{background:var(--green-lt);color:var(--green)}
+.card-tag.prospect-tag{background:var(--gold-lt);color:var(--gold)}
 
 .detail-panel{position:fixed;inset:0;background:var(--bg);z-index:200;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);overflow-y:auto}
 .detail-panel.open{transform:translateX(0)}
@@ -350,6 +351,8 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
       <div class="stat-box"><div class="stat-val" id="detail-count">0</div><div class="stat-lbl">Payments</div></div>
     </div>
     <div id="detail-contact" style="margin-bottom:16px"></div>
+    <div class="section-heading" id="detail-services-label">Services</div>
+    <div class="pill-group" id="detail-services-pills" style="margin-bottom:20px;flex-wrap:wrap"></div>
     <div class="section-heading">Recent Payments</div>
     <div id="detail-history"></div>
   </div>
@@ -371,9 +374,19 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
     <div class="field-group">
       <label class="field-label">Status</label>
       <div class="pill-group" id="new-status-pills">
-        <div class="pill active" data-val="Active" onclick="selectPill('new-status-pills',this)">Active</div>
-        <div class="pill" data-val="Prospect" onclick="selectPill('new-status-pills',this)">Prospect</div>
-        <div class="pill" data-val="Inactive" onclick="selectPill('new-status-pills',this)">Inactive</div>
+        <div class="pill active" data-val="Active" onclick="selectPill('new-status-pills',this);updateServicesLabel()">Active</div>
+        <div class="pill" data-val="Prospect" onclick="selectPill('new-status-pills',this);updateServicesLabel()">Prospect</div>
+        <div class="pill" data-val="Inactive" onclick="selectPill('new-status-pills',this);updateServicesLabel()">Inactive</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="new-services-label">Services</label>
+      <div class="pill-group" id="new-services-pills" style="flex-wrap:wrap">
+        <div class="pill" data-val="Tai Chi" onclick="toggleServicePill(this)">Tai Chi</div>
+        <div class="pill" data-val="Qigong" onclick="toggleServicePill(this)">Qigong</div>
+        <div class="pill" data-val="Somatics" onclick="toggleServicePill(this)">Somatics</div>
+        <div class="pill" data-val="One-on-one Coaching" onclick="toggleServicePill(this)">Coaching</div>
+        <div class="pill" data-val="Massage" onclick="toggleServicePill(this)">Massage</div>
       </div>
     </div>
     <div class="field-group"><label class="field-label">Notes</label><textarea id="new-notes" placeholder="Any notes…"></textarea></div>
@@ -709,19 +722,60 @@ function resetExpenseForm(){
 }
 
 // ── Clients screen ────────────────────────────────────
+function isActiveThisMonth(clientName) {
+  const now = new Date();
+  return payments.some(p => {
+    if (p.client !== clientName || !p.date) return false;
+    const d = new Date(p.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+}
+
+function getClientStatus(c) {
+  if (c.status === 'Prospect') return 'prospect';
+  return isActiveThisMonth(c.name) ? 'active' : 'inactive';
+}
+
 function renderClientList(){
   const q=(document.getElementById('client-search')?.value||'').toLowerCase();
   const list=document.getElementById('client-list');
   const filtered=clients.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q));
   if(!filtered.length){list.innerHTML='<div class="empty-state"><p>No clients found</p></div>';return;}
-  list.innerHTML=filtered.map(c=>`
+
+  // Sort: active first, then inactive, then prospects
+  const sorted = [...filtered].sort((a,b) => {
+    const order = {active:0, inactive:1, prospect:2};
+    return order[getClientStatus(a)] - order[getClientStatus(b)];
+  });
+
+  list.innerHTML=sorted.map(c=>{
+    const status = getClientStatus(c);
+    const tagClass = status === 'active' ? 'active-tag' : status === 'prospect' ? 'prospect-tag' : '';
+    const tagLabel = status === 'active' ? 'Active this month' : status === 'prospect' ? 'Prospect' : 'Inactive';
+    const dot = status === 'active' ? '🟢' : status === 'prospect' ? '🔵' : '⚪';
+    return `
     <div class="card" onclick="openClientDetail('${c.name.replace(/'/g,"\\'")}')">
       <div class="card-row">
         <div><div class="card-name">${c.name}</div><div class="card-sub">${c.phone||c.email||c.group||'—'}</div></div>
         <div class="card-amount">€${(c.totalPaid||0).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0})}</div>
       </div>
-      <span class="card-tag ${c.status==='Active'?'active-tag':''}">${c.status}</span>
-    </div>`).join('');
+      <span class="card-tag ${tagClass}">${dot} ${tagLabel}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleServicePill(el) {
+  el.classList.toggle('active');
+}
+
+function updateServicesLabel() {
+  const status = document.querySelector('#new-status-pills .pill.active')?.dataset.val || 'Active';
+  document.getElementById('new-services-label').textContent = status === 'Prospect' ? 'Interests' : 'Services';
+}
+
+function getSelectedServices() {
+  return Array.from(document.querySelectorAll('#new-services-pills .pill.active'))
+    .map(p => p.dataset.val).join(', ');
 }
 
 function openClientDetail(name){
@@ -731,8 +785,22 @@ function openClientDetail(name){
   document.getElementById('detail-total').textContent=`€${(c.totalPaid||0).toLocaleString('en',{minimumFractionDigits:0})}`;
   const cp=payments.filter(p=>p.client===name).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
   document.getElementById('detail-count').textContent=cp.length;
-  const contacts=[c.phone,c.email,c.group].filter(Boolean);
+  const status = getClientStatus(c);
+  const contacts=[c.phone,c.email,c.group,status==='active'?'🟢 Active this month':status==='prospect'?'🔵 Prospect':'⚪ Inactive this month'].filter(Boolean);
   document.getElementById('detail-contact').innerHTML=contacts.map(v=>`<div style="font-size:13px;color:var(--muted);padding:4px 0">${v}</div>`).join('');
+
+  // Services / Interests
+  const servicesLabel = c.status === 'Prospect' ? 'Interests' : 'Services';
+  document.getElementById('detail-services-label').textContent = servicesLabel;
+  const servicesContainer = document.getElementById('detail-services-pills');
+  if (c.services && c.services.trim()) {
+    const tags = c.services.split(',').map(s=>s.trim()).filter(Boolean);
+    servicesContainer.innerHTML = tags.map(t =>
+      `<span class="card-tag active-tag" style="margin-bottom:4px">${t}</span>`
+    ).join('');
+  } else {
+    servicesContainer.innerHTML = `<span style="font-size:13px;color:var(--muted)">None recorded</span>`;
+  }
   document.getElementById('detail-history').innerHTML=cp.length
     ?cp.map(p=>`<div class="history-item"><div><div class="history-service">${p.service}</div><div class="history-date">${p.date?new Date(p.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''} · ${p.method}</div></div><div class="history-amount">€${(p.paid||0).toFixed(0)}</div></div>`).join('')
     :'<div style="color:var(--muted);font-size:14px;padding:16px 0">No payments recorded yet</div>';
@@ -751,14 +819,16 @@ async function submitNewClient(){
   const group=document.getElementById('new-group').value.trim();
   const status=document.querySelector('#new-status-pills .pill.active')?.dataset.val||'Active';
   const notes=document.getElementById('new-notes').value.trim();
+  const services=getSelectedServices();
   const btn=document.getElementById('add-client-btn');
   btn.disabled=true;btn.textContent='Adding…';
   try{
-    await api('addClient',{name,phone,email,group,status,notes});
+    await api('addClient',{name,phone,email,group,status,notes,services});
     showToast(`${name} added ✓`,'success');
     closeAddClient();
     ['new-name','new-phone','new-email','new-group','new-notes'].forEach(id=>document.getElementById(id).value='');
     document.querySelectorAll('#new-status-pills .pill').forEach((p,i)=>p.classList.toggle('active',i===0));
+    document.querySelectorAll('#new-services-pills .pill').forEach(p=>p.classList.remove('active'));
     await loadData();
   }catch(e){showToast('Error — try again','error');console.error(e);}
   finally{btn.disabled=false;btn.textContent='Add Client →';}

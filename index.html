@@ -756,7 +756,7 @@ function resetExpenseForm(){
 function isActiveThisMonth(clientName) {
   const now = new Date();
   return payments.some(p => {
-    if (p.client !== clientName || !p.date) return false;
+    if (normName(p.client) !== normName(clientName) || !p.date) return false;
     const d = new Date(p.date);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
@@ -809,12 +809,14 @@ function getSelectedServices() {
     .map(p => p.dataset.val).join(', ');
 }
 
+function normName(s){return (s||'').trim().toLowerCase();}
+
 function openClientDetail(name){
   const c=clients.find(cl=>cl.name===name);
   if(!c)return;
   document.getElementById('detail-client-name').textContent=c.name;
   document.getElementById('detail-total').textContent=`€${(c.totalPaid||0).toLocaleString('en',{minimumFractionDigits:0})}`;
-  const cp=payments.filter(p=>p.client===name).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+  const cp=payments.filter(p=>normName(p.client)===normName(name)).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
   document.getElementById('detail-count').textContent=cp.length;
   const status = getClientStatus(c);
   const contacts=[c.phone,c.email,c.group,status==='active'?'🟢 Active this month':status==='prospect'?'🔵 Prospect':'⚪ Inactive this month'].filter(Boolean);

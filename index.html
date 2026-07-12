@@ -155,6 +155,9 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
 .pin-change{color:rgba(255,255,255,0.3);font-size:12px;margin-top:24px;cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'DM Sans',sans-serif}
 
 .discount-custom{display:none;margin-top:8px}
+.client-pick-item{padding:12px 14px;border-bottom:1px solid var(--stone);cursor:pointer;font-size:15px;transition:background 0.1s}
+.client-pick-item:last-child{border-bottom:none}
+.client-pick-item:active{background:var(--stone)}
 .config-pair{display:flex;gap:8px}
 .config-pair input{flex:1}
 .config-pair button{padding:13px 16px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;
@@ -207,10 +210,10 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
       </div>
       <div class="field-group">
         <label class="field-label">Client</label>
-        <input type="text" id="pay-client-search" placeholder="Search name…" oninput="filterSelect('pay-client-select',this.value)" autocomplete="off" style="margin-bottom:6px;background:var(--stone);border-color:transparent;border-radius:12px;">
-        <div class="select-wrap">
-          <select id="pay-client-select"><option value="">— select client —</option></select>
-        </div>
+        <input type="text" id="pay-client-search" placeholder="Search name…" oninput="filterClientList()" autocomplete="off" style="margin-bottom:6px;background:var(--stone);border-color:transparent;border-radius:12px;">
+        <input type="hidden" id="pay-client-value">
+        <div id="pay-client-selected" style="display:none;padding:10px 14px;background:var(--green-lt);border-radius:12px;font-size:15px;font-weight:500;color:var(--green);cursor:pointer;display:none" onclick="clearClientSelection()"></div>
+        <div id="pay-client-list" style="max-height:180px;overflow-y:auto;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);display:none"></div>
       </div>
       <div class="field-group">
         <label class="field-label">Service</label>
@@ -586,11 +589,7 @@ function setSyncState(state) {
 
 // ── Payment screen ────────────────────────────────────
 function populatePaymentDropdowns() {
-  const cs=document.getElementById('pay-client-select');
-  cs.innerHTML='<option value="">— select client —</option>';
-  clients.filter(c=>c.status==='Active'||c.status==='active').forEach(c=>{
-    const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; cs.appendChild(o);
-  });
+  // Services dropdown
   const ss=document.getElementById('pay-service-select');
   ss.innerHTML='<option value="">— select service —</option>';
   const cats={};
@@ -603,6 +602,40 @@ function populatePaymentDropdowns() {
     });
     ss.appendChild(og);
   });
+}
+
+function filterClientList() {
+  const q = document.getElementById('pay-client-search').value.toLowerCase();
+  const listEl = document.getElementById('pay-client-list');
+  if (!q) { listEl.style.display = 'none'; return; }
+  const activeClients = clients.filter(c => c.status !== 'Prospect' || true);
+  const filtered = activeClients.filter(c => c.name.toLowerCase().includes(q));
+  if (!filtered.length) {
+    listEl.style.display = 'block';
+    listEl.innerHTML = '<div style="padding:12px 14px;color:var(--muted);font-size:14px">No matches</div>';
+    return;
+  }
+  listEl.style.display = 'block';
+  listEl.innerHTML = filtered.slice(0, 20).map(c =>
+    `<div class="client-pick-item" onclick="pickClient('${c.name.replace(/'/g,"\\'")}')">${c.name}</div>`
+  ).join('');
+}
+
+function pickClient(name) {
+  document.getElementById('pay-client-value').value = name;
+  document.getElementById('pay-client-search').style.display = 'none';
+  document.getElementById('pay-client-list').style.display = 'none';
+  const sel = document.getElementById('pay-client-selected');
+  sel.textContent = '✓ ' + name + '  ✕';
+  sel.style.display = 'block';
+}
+
+function clearClientSelection() {
+  document.getElementById('pay-client-value').value = '';
+  document.getElementById('pay-client-search').value = '';
+  document.getElementById('pay-client-search').style.display = 'block';
+  document.getElementById('pay-client-selected').style.display = 'none';
+  document.getElementById('pay-client-list').style.display = 'none';
 }
 
 function filterSelect(id,q){
@@ -650,7 +683,7 @@ function recalcPayment(){
 
 async function submitPayment(){
   const date=document.getElementById('pay-date').value;
-  const client=document.getElementById('pay-client-select').value;
+  const client=document.getElementById('pay-client-value').value;
   const service=document.getElementById('pay-service-select').value;
   if(!date||!client||!service){showToast('Date, client & service required','error');return;}
   const sel=document.getElementById('pay-service-select');
@@ -676,9 +709,7 @@ async function submitPayment(){
 }
 
 function resetPaymentForm(){
-  document.getElementById('pay-client-select').value='';
-  document.getElementById('pay-client-search').value='';
-  filterSelect('pay-client-select','');
+  clearClientSelection();
   document.getElementById('pay-service-select').value='';
   document.getElementById('pay-custom-price').value='';
   document.getElementById('pay-notes').value='';

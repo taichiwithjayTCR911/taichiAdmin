@@ -162,6 +162,38 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
 .config-pair input{flex:1}
 .config-pair button{padding:13px 16px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+/* Classes */
+.day-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.day-label:first-child{margin-top:0}
+.class-chip-row{display:flex;gap:8px;flex-wrap:wrap}
+.class-chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:9px 12px;min-height:44px;border:1.5px solid var(--border);border-radius:12px;
+  background:var(--surface);font-family:'DM Sans',sans-serif;color:var(--ink);cursor:pointer;text-align:left;transition:all 0.15s}
+.class-chip .cc-main{font-size:13px;font-weight:600}
+.class-chip .cc-sub{font-size:11px;color:var(--muted)}
+.class-chip.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.class-chip.active .cc-sub{color:rgba(255,255,255,0.6)}
+.class-chip.full:not(.active) .cc-sub{color:var(--accent);font-weight:600}
+.classes-hint{font-size:12px;color:var(--muted);margin-bottom:10px}
+.classes-hint.warn{color:var(--accent);font-weight:600}
+.class-card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:14px 16px;margin-bottom:10px}
+.class-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.class-title{font-size:15px;font-weight:600}
+.class-loc{font-size:12px;color:var(--muted);margin-top:2px}
+.class-count{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;line-height:1;white-space:nowrap}
+.class-count small{font-size:16px;color:var(--muted)}
+.class-count.full{color:var(--accent)}
+.class-count.near{color:var(--gold)}
+.cap-bar{height:6px;background:var(--stone);border-radius:3px;margin:10px 0;overflow:hidden}
+.cap-fill{height:100%;background:var(--green);border-radius:3px}
+.cap-fill.near{background:var(--gold)}
+.cap-fill.full{background:var(--accent)}
+.name-tags{display:flex;flex-wrap:wrap;gap:6px}
+.name-tag{border:none;padding:5px 10px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;background:var(--green-lt);color:var(--green);cursor:pointer}
+.name-tag.lapsed{background:var(--stone);color:var(--muted);text-decoration:line-through}
+.pkg-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--stone);font-size:14px}
+.pkg-row:last-child{border-bottom:none}
+.pkg-row strong{font-weight:600}
 </style>
 </head>
 <body>
@@ -220,6 +252,11 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
         <div class="select-wrap">
           <select id="pay-service-select" onchange="onServiceChange()"><option value="">— select service —</option></select>
         </div>
+      </div>
+      <div class="field-group" id="pay-classes-wrap" style="display:none">
+        <label class="field-label">Class days</label>
+        <div class="classes-hint" id="pay-classes-hint"></div>
+        <div id="pay-classes-chips"></div>
       </div>
       <div class="field-group">
         <label class="field-label">Price</label>
@@ -322,6 +359,11 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
       <div id="client-list"><div style="text-align:center;padding:40px;color:var(--muted)">Loading clients…</div></div>
     </div>
 
+    <!-- CLASSES -->
+    <div class="screen" id="screen-classes">
+      <div id="classes-view"><div style="text-align:center;padding:40px;color:var(--muted)">Loading classes…</div></div>
+    </div>
+
   </div>
 
   <nav>
@@ -336,6 +378,10 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
     <button class="nav-btn" id="nav-clients" onclick="showScreen('clients')">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span class="nav-label">Clients</span>
+    </button>
+    <button class="nav-btn" id="nav-classes" onclick="showScreen('classes')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M7 13h2M11 13h2M15 13h2M7 17h2M11 17h2"/></svg>
+      <span class="nav-label">Classes</span>
     </button>
   </nav>
 </div>
@@ -356,6 +402,9 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
     <div id="detail-contact" style="margin-bottom:16px"></div>
     <div class="section-heading" id="detail-services-label">Services</div>
     <div class="pill-group" id="detail-services-pills" style="margin-bottom:20px;flex-wrap:wrap"></div>
+    <div class="section-heading">Classes</div>
+    <div class="pill-group" id="detail-classes-pills" style="margin-bottom:10px;flex-wrap:wrap"></div>
+    <button class="btn-secondary" onclick="openClassesEditor()" style="margin:0 0 20px">Edit classes</button>
     <div class="section-heading">Recent Payments</div>
     <div id="detail-history"></div>
   </div>
@@ -397,6 +446,21 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
   </div>
 </div>
 
+<!-- Edit Classes -->
+<div class="overlay" id="classes-edit-overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="closeClassesEditor()" aria-label="Close">
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div class="overlay-title" id="classes-edit-title">Classes</div>
+  </div>
+  <div class="overlay-body">
+    <div class="classes-hint" id="classes-edit-hint"></div>
+    <div id="classes-edit-chips"></div>
+    <button class="btn-primary" id="classes-edit-save" onclick="saveClassesEditor()" style="margin-top:20px">Save Classes →</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- PIN Screen -->
@@ -430,7 +494,9 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
 <script>
 // ── State ─────────────────────────────────────────────
 let SCRIPT_URL = localStorage.getItem('tc_script_url') || '';
-let clients=[], services=[], payments=[];
+let clients=[], services=[], payments=[], classesList=[];
+let payClassSel=new Set(), editClassSel=new Set(), detailClientName='';
+const ACTIVE_DAYS = 40; // a package payment within this many days = student counts in their classes
 let discountState={label:'',pct:0};
 
 // ── PIN ───────────────────────────────────────────────
@@ -554,14 +620,18 @@ async function api(action, params={}) {
 async function loadData() {
   setSyncState('loading');
   try {
-    const [cR, sR, pR] = await Promise.all([
-      api('getClients'), api('getServices'), api('getPayments')
+    const [cR, sR, pR, clR] = await Promise.all([
+      api('getClients'), api('getServices'), api('getPayments'),
+      api('getClasses').catch(()=>({classes:[]}))
     ]);
-    clients  = (cR.clients  || []).sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    clients  = (cR.clients  || []).sort((a,b)=>String(a.name).toLowerCase().localeCompare(String(b.name).toLowerCase()));
     services = sR.services || [];
     payments = pR.payments || [];
+    classesList = (clR && clR.classes) || [];
     populatePaymentDropdowns();
     renderClientList();
+    renderClassesScreen();
+    updatePayClasses();
     setSyncState('live');
   } catch(e) {
     console.error(e);
@@ -628,6 +698,9 @@ function pickClient(name) {
   const sel = document.getElementById('pay-client-selected');
   sel.textContent = '✓ ' + name + '  ✕';
   sel.style.display = 'block';
+  const c = clients.find(cl => normName(cl.name) === normName(name));
+  payClassSel = new Set(c ? clientClassIds(c) : []);
+  updatePayClasses();
 }
 
 function clearClientSelection() {
@@ -636,6 +709,8 @@ function clearClientSelection() {
   document.getElementById('pay-client-search').style.display = 'block';
   document.getElementById('pay-client-selected').style.display = 'none';
   document.getElementById('pay-client-list').style.display = 'none';
+  payClassSel = new Set();
+  updatePayClasses();
 }
 
 function filterSelect(id,q){
@@ -652,6 +727,7 @@ function onServiceChange(){
   badge.classList.toggle('has-val',price>0);
   document.getElementById('pay-custom-price').value='';
   recalcPayment();
+  updatePayClasses();
 }
 
 function selectPill(groupId,el){
@@ -700,8 +776,12 @@ async function submitPayment(){
   const btn=document.getElementById('pay-submit');
   btn.disabled=true;btn.textContent='Logging…';
   try{
-    await api('logPayment',{date,client,service,category,method,stdPrice,paid:total,discount:discLabel||'',notes});
-    showToast('Payment logged ✓','success');
+    const params={date,client,service,category,method,stdPrice,paid:total,discount:discLabel||'',notes};
+    const withClasses=document.getElementById('pay-classes-wrap').style.display!=='none';
+    if(withClasses){params.updateClasses='1';params.classes=[...payClassSel].join(',');}
+    const res=await api('logPayment',params);
+    if(res&&res.error) throw new Error(res.error);
+    showToast(withClasses?'Payment + classes saved ✓':'Payment logged ✓','success');
     resetPaymentForm();
     loadData();
   }catch(e){showToast('Error — try again','error');console.error(e);}
@@ -720,6 +800,8 @@ function resetPaymentForm(){
   document.querySelectorAll('#pay-method-pills .pill').forEach((p,i)=>p.classList.toggle('active',i===0));
   document.getElementById('discount-custom-wrap').style.display='none';
   discountState={label:'',pct:0};
+  payClassSel=new Set();
+  updatePayClasses();
   setTodayDates();
 }
 
@@ -846,6 +928,8 @@ function openClientDetail(name){
   } else {
     servicesContainer.innerHTML = `<span style="font-size:13px;color:var(--muted)">None recorded</span>`;
   }
+  detailClientName = c.name;
+  renderDetailClasses(c);
   document.getElementById('detail-history').innerHTML=cp.length
     ?cp.map(p=>`<div class="history-item"><div><div class="history-service">${p.service}</div><div class="history-date">${p.date?new Date(p.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):''} · ${p.method}</div></div><div class="history-amount">€${(p.paid||0).toFixed(0)}</div></div>`).join('')
     :'<div style="color:var(--muted);font-size:14px;padding:16px 0">No payments recorded yet</div>';
@@ -877,6 +961,207 @@ async function submitNewClient(){
     await loadData();
   }catch(e){showToast('Error — try again','error');console.error(e);}
   finally{btn.disabled=false;btn.textContent='Add Client →';}
+}
+
+// ── Classes ───────────────────────────────────────────
+const DAY_ORDER=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAY_NAMES={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function clientClassIds(c){return String((c&&c.classes)||'').split(',').map(s=>s.trim()).filter(Boolean);}
+function classById(id){return classesList.find(k=>k.id===id);}
+function shortTime(t){return String(t||'').replace(/^0(\d)/,'$1');}
+function classLabel(k){return `${k.day} ${shortTime(k.time)} · ${k.location}`;}
+function sortedClasses(){
+  return [...classesList].sort((a,b)=>(DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day))||String(a.time).localeCompare(String(b.time)));
+}
+
+// How many classes a week a package covers (null = unlimited / unknown)
+function packageLimit(serviceName){
+  const s=String(serviceName||'').toLowerCase();
+  const m=s.match(/(\d+)\s*x\s*\/?\s*week/);
+  if(m) return parseInt(m[1]);
+  if(s.includes('essentials')) return 1;
+  if(s.includes('foundation')) return 2;
+  if(s.includes('evolution')) return 3;
+  if(s.includes('mastery')) return 4;
+  return null;
+}
+
+function latestPackagePayment(name){
+  const n=normName(name);
+  return payments.filter(p=>p.category==='Package'&&normName(p.client)===n&&p.date)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;
+}
+function daysSince(dateStr){return (Date.now()-new Date(dateStr).getTime())/86400000;}
+function hasActivePackage(name){
+  const p=latestPackagePayment(name);
+  return !!p && daysSince(p.date)<=ACTIVE_DAYS;
+}
+
+// classId -> {active:[names], lapsed:[names]}
+function classRosters(){
+  const r={};
+  classesList.forEach(k=>r[k.id]={active:[],lapsed:[]});
+  clients.forEach(c=>{
+    const ids=clientClassIds(c);
+    if(!ids.length) return;
+    const on=hasActivePackage(c.name);
+    ids.forEach(id=>{ if(r[id]) r[id][on?'active':'lapsed'].push(c.name); });
+  });
+  return r;
+}
+
+// Chips for picking classes. `sel` is a Set of class IDs; `forName` is the student being edited
+function classChipsHTML(sel, forName){
+  if(!classesList.length) return '<div style="font-size:13px;color:var(--muted)">No classes found — check the Classes tab in your sheet.</div>';
+  const rosters=classRosters(), me=normName(forName);
+  const byDay={};
+  sortedClasses().forEach(k=>{(byDay[k.day]=byDay[k.day]||[]).push(k);});
+  return Object.entries(byDay).map(([day,ks])=>`
+    <div class="day-label">${esc(DAY_NAMES[day]||day)}</div>
+    <div class="class-chip-row">${ks.map(k=>{
+      const others=rosters[k.id].active.filter(n=>normName(n)!==me).length;
+      const on=sel.has(k.id);
+      const count=others+(on?1:0);
+      const full=k.max&&others>=k.max;
+      const sub=k.max?`${count}/${k.max}${full&&!on?' · Full':''}`:`${count} students`;
+      return `<button type="button" class="class-chip${on?' active':''}${full?' full':''}" data-class-id="${esc(k.id)}" aria-pressed="${on}">
+        <span class="cc-main">${esc(shortTime(k.time))} ${esc(k.name)}</span>
+        <span class="cc-sub">${esc(k.location)} · ${esc(sub)}</span></button>`;
+    }).join('')}</div>`).join('');
+}
+
+function limitHint(serviceName, n){
+  const lim=packageLimit(serviceName);
+  if(lim===null) return {text:`${n} selected · pick their usual classes`, warn:false};
+  const over=n>lim;
+  return {text:`${String(serviceName).replace(/\s*\(.*\)/,'')} covers ${lim} class${lim>1?'es':''} a week · ${n} selected${over?' — more than the package covers':''}`, warn:over};
+}
+
+// Payment screen
+function updatePayClasses(){
+  const wrap=document.getElementById('pay-classes-wrap');
+  if(!wrap) return;
+  const service=document.getElementById('pay-service-select').value;
+  const svc=services.find(s=>s.name===service);
+  const show=!!svc && svc.category==='Package' && classesList.length>0;
+  wrap.style.display=show?'block':'none';
+  if(!show) return;
+  const client=document.getElementById('pay-client-value').value;
+  document.getElementById('pay-classes-chips').innerHTML=classChipsHTML(payClassSel, client);
+  const h=limitHint(service, payClassSel.size);
+  const hint=document.getElementById('pay-classes-hint');
+  hint.textContent=h.text; hint.classList.toggle('warn',h.warn);
+}
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('#pay-classes-chips .class-chip');
+  if(chip){const id=chip.dataset.classId; payClassSel.has(id)?payClassSel.delete(id):payClassSel.add(id); updatePayClasses(); return;}
+  const echip=e.target.closest('#classes-edit-chips .class-chip');
+  if(echip){const id=echip.dataset.classId; editClassSel.has(id)?editClassSel.delete(id):editClassSel.add(id); renderClassesEditor(); return;}
+  const tag=e.target.closest('[data-open-client]');
+  if(tag){openClientDetail(tag.dataset.openClient);}
+});
+
+// Client detail
+function renderDetailClasses(c){
+  const ids=clientClassIds(c);
+  const el=document.getElementById('detail-classes-pills');
+  el.innerHTML=ids.length
+    ? ids.map(id=>{const k=classById(id);return `<span class="card-tag active-tag" style="margin-bottom:4px">${esc(k?classLabel(k):id)}</span>`;}).join('')
+    : '<span style="font-size:13px;color:var(--muted)">No classes set</span>';
+}
+function openClassesEditor(){
+  const c=clients.find(cl=>cl.name===detailClientName);
+  if(!c) return;
+  editClassSel=new Set(clientClassIds(c));
+  document.getElementById('classes-edit-title').textContent=c.name;
+  renderClassesEditor();
+  document.getElementById('classes-edit-overlay').classList.add('open');
+}
+function closeClassesEditor(){document.getElementById('classes-edit-overlay').classList.remove('open');}
+function renderClassesEditor(){
+  document.getElementById('classes-edit-chips').innerHTML=classChipsHTML(editClassSel, detailClientName);
+  const p=latestPackagePayment(detailClientName);
+  const h=p?limitHint(p.service, editClassSel.size):{text:`${editClassSel.size} selected · no package payment on record`,warn:false};
+  const hint=document.getElementById('classes-edit-hint');
+  hint.textContent=h.text; hint.classList.toggle('warn',h.warn);
+}
+async function saveClassesEditor(){
+  const btn=document.getElementById('classes-edit-save');
+  const classes=[...editClassSel].join(',');
+  btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const res=await api('setClientClasses',{client:detailClientName,classes});
+    if(res&&res.error) throw new Error(res.error);
+    const c=clients.find(cl=>cl.name===detailClientName);
+    if(c){c.classes=classes;renderDetailClasses(c);}
+    renderClassesScreen();
+    closeClassesEditor();
+    showToast('Classes saved ✓','success');
+  }catch(e){showToast('Error — try again','error');console.error(e);}
+  finally{btn.disabled=false;btn.textContent='Save Classes →';}
+}
+
+// Classes screen
+function renderClassesScreen(){
+  const view=document.getElementById('classes-view');
+  if(!view) return;
+  if(!classesList.length){
+    view.innerHTML='<div class="empty-state"><p>No classes loaded yet.<br>Update the Apps Script, then tap the sync pill.</p></div>';
+    return;
+  }
+  const rosters=classRosters();
+  const activeStudents=clients.filter(c=>hasActivePackage(c.name));
+  const unassigned=activeStudents.filter(c=>!clientClassIds(c).length);
+  const pkgCounts={};
+  activeStudents.forEach(c=>{const p=latestPackagePayment(c.name);pkgCounts[p.service]=(pkgCounts[p.service]||0)+1;});
+  const pkgOrder=services.filter(s=>s.category==='Package').map(s=>s.name);
+  const pkgRows=Object.entries(pkgCounts).sort((a,b)=>{
+    const ia=pkgOrder.indexOf(a[0]),ib=pkgOrder.indexOf(b[0]);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+
+  let html=`
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val">${activeStudents.length}</div><div class="stat-lbl">Package students</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:${unassigned.length?'var(--accent)':'inherit'}">${unassigned.length}</div><div class="stat-lbl">No classes set</div></div>
+    </div>
+    <div class="section-heading" style="margin-top:4px">Packages</div>
+    <div class="class-card" style="padding:6px 16px">${pkgRows.length
+      ? pkgRows.map(([n,v])=>`<div class="pkg-row"><span>${esc(n)}</span><strong>${v}</strong></div>`).join('')
+      : '<div class="pkg-row"><span style="color:var(--muted)">No package payments in the last '+ACTIVE_DAYS+' days</span></div>'}
+    </div>`;
+
+  if(unassigned.length){
+    html+=`<div class="section-heading">Paid, but no classes set — tap to add</div>
+      <div class="name-tags" style="margin-bottom:6px">${unassigned.map(c=>`<button type="button" class="name-tag" data-open-client="${esc(c.name)}">${esc(c.name)}</button>`).join('')}</div>`;
+  }
+
+  const byDay={};
+  sortedClasses().forEach(k=>{(byDay[k.day]=byDay[k.day]||[]).push(k);});
+  Object.entries(byDay).forEach(([day,ks])=>{
+    html+=`<div class="section-heading">${esc(DAY_NAMES[day]||day)}</div>`;
+    ks.forEach(k=>{
+      const r=rosters[k.id], n=r.active.length;
+      const ratio=k.max?n/k.max:0;
+      const state=k.max&&n>=k.max?'full':(ratio>=0.8?'near':'');
+      html+=`<div class="class-card">
+        <div class="class-card-top">
+          <div><div class="class-title">${esc(shortTime(k.time))} ${esc(k.name)}</div><div class="class-loc">${esc(k.location)}${state==='full'?' · Full':k.max?` · ${Math.max(k.max-n,0)} spot${k.max-n===1?'':'s'} left`:''}</div></div>
+          <div class="class-count ${state}">${n}${k.max?`<small>/${k.max}</small>`:''}</div>
+        </div>
+        ${k.max?`<div class="cap-bar"><div class="cap-fill ${state}" style="width:${Math.min(100,Math.round(ratio*100))}%"></div></div>`:'<div style="height:10px"></div>'}
+        <div class="name-tags">${
+          r.active.map(nm=>`<button type="button" class="name-tag" data-open-client="${esc(nm)}">${esc(nm)}</button>`).join('')+
+          r.lapsed.map(nm=>`<button type="button" class="name-tag lapsed" data-open-client="${esc(nm)}" title="No package payment in ${ACTIVE_DAYS}+ days">${esc(nm)}</button>`).join('')
+          || '<span style="font-size:12px;color:var(--muted)">No students yet</span>'}
+        </div>
+      </div>`;
+    });
+  });
+  html+=`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px">Counts include students with a package payment in the last ${ACTIVE_DAYS} days. Crossed-out names haven't paid in that time and don't take a spot. Edit times and max spots in the Classes tab of your sheet.</div>`;
+  view.innerHTML=html;
 }
 
 // ── Toast ─────────────────────────────────────────────
